@@ -1,0 +1,65 @@
+# Copyright (c) 2023 Taisheng Wang <wstrn66@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: ST75256/ST75160 display controller
+
+compatible: "sitronix,st75256"
+
+include: [spi-device.yaml, display-controller.yaml]
+
+properties:
+  reset-gpios:
+    type: phandle-array
+    description: RESET pin.
+
+      The RESET pin of ST7735R is active low.
+      If connected directly the MCU pin should be configured
+      as active low.
+
+  cmd-data-gpios:
+    type: phandle-array
+    required: true
+    description: D/CX pin.
+
+      The D/CX pin of ST7735R is active low (transmission command byte).
+      If connected directly the MCU pin should be configured
+      as active low.
+
+  row_range:
+    type: uint8-array
+    default: [00, 0x9f]
+
+  col_range:
+    type: uint8-array
+    default: [00, 0x7f]
+
+  color_mode:
+    type: uint8-array
+    default: [0x10]
+
+  auto_read:
+    type: uint8-array
+
+  analog_circuit:
+    type: uint8-array
+
+  gray_level:
+    type: uint8-array
+
+  data_scan:
+    type: uint8-array
+
+  display_control:
+    type: uint8-array
+
+  volume_control:
+    type: uint8-array
+    
+  power_control:
+    type: uint8-array
+
+
+
+  
+
+

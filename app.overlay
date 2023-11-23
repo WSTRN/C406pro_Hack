@@ -1,0 +1,100 @@
+//&uart0_default{
+//    /delete-node/ group2;
+//};
+
+&pinctrl {
+	uart0_default: uart0_default {
+		/delete-node/ group1;
+		/delete-node/ group2;
+	};
+    uart0_sleep: uart0_sleep {
+		/delete-node/ group1;
+	};
+
+	uart1_default: uart1_default {
+		/delete-node/ group1;
+		/delete-node/ group2;
+	};
+
+	uart1_sleep: uart1_sleep {
+		/delete-node/ group1;
+	};
+
+	i2c0_default: i2c0_default {
+		/delete-node/ group1;
+	};
+
+	i2c0_sleep: i2c0_sleep {
+		/delete-node/ group1;
+	};
+
+	i2c1_default: i2c1_default {
+		/delete-node/ group1;
+	};
+
+	i2c1_sleep: i2c1_sleep {
+		/delete-node/ group1;
+	};
+
+	pwm0_default: pwm0_default {
+		/delete-node/ group1;
+	};
+
+	pwm0_sleep: pwm0_sleep {
+		/delete-node/ group1;
+	};
+
+	spi0_default: spi0_default {
+		/delete-node/ group1;
+	};
+
+	spi0_sleep: spi0_sleep {
+		/delete-node/ group1;
+	};
+
+	spi2_default: spi2_default {
+		/delete-node/ group1;
+	};
+
+	spi2_sleep: spi2_sleep {
+		/delete-node/ group1;
+	};
+
+	qspi_default: qspi_default {
+		/delete-node/ group1;
+	};
+
+	qspi_sleep: qspi_sleep {
+		/delete-node/ group1;
+		/delete-node/ group2;
+	};
+
+	spi3_default: spi3_default {
+		/delete-node/ group1;
+	};
+
+	spi3_sleep: spi3_sleep {
+		/delete-node/ group1;
+	};
+};
+
+/ {
+	zephyr,user {
+		io-channels = <&adc 0>;
+	};
+};
+
+&adc {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_3";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN5>; /* P0.29 */
+		zephyr,resolution = <14>;
+		zephyr,oversampling = <8>;
+	};
+};

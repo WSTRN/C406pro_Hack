@@ -1,0 +1,248 @@
+/*
+ * Copyright (c) 2017 Linaro Limited
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+#include "C406pro-pinctrl.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "Magene C406pro";
+	compatible = "C406pro";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,uart-mcumgr = &uart0;
+		zephyr,bt-mon-uart = &uart0;
+		zephyr,bt-c2h-uart = &uart0;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+		zephyr,ieee802154 = &ieee802154;
+		zephyr,display = &lcd0;
+	};
+
+	buttons {
+		compatible = "gpio-keys";
+		button0: button_0 {
+			gpios = <&gpio0 11 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Push button switch 0";
+			zephyr,code = <INPUT_KEY_0>;
+		};
+		button1: button_1 {
+			gpios = <&gpio0 12 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Push button switch 1";
+			zephyr,code = <INPUT_KEY_1>;
+		};
+		button2: button_2 {
+			gpios = <&gpio1 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Push button switch 2";
+			zephyr,code = <INPUT_KEY_2>;
+		};
+	};
+
+	powerdomain0: powerdomain0 {
+		compatible = "power-domain-gpio";
+		status = "okay";
+		enable-gpios = <&gpio0 8 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <0>;
+		off-on-delay-us = <0>;
+	};
+
+	/* These aliases are provided for compatibility with samples */
+	aliases {
+		sw0 = &button0;
+		sw1 = &button1;
+		sw2 = &button2;
+		mcuboot-button0 = &button0;
+		watchdog0 = &wdt0;
+		spi-flash0 = &mx25r64;
+	};
+};
+
+&adc {
+	status = "okay";
+};
+
+&uicr {
+	gpio-as-nreset;
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&uart0 {
+	compatible = "nordic,nrf-uarte";
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-1 = <&uart0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+// &uart1 {
+// 	current-speed = <115200>;
+// 	pinctrl-0 = <&uart1_default>;
+// 	pinctrl-1 = <&uart1_sleep>;
+// 	pinctrl-names = "default", "sleep";
+// };
+
+// &i2c0 {
+// 	compatible = "nordic,nrf-twi";
+// 	status = "okay";
+// 	pinctrl-0 = <&i2c0_default>;
+// 	pinctrl-1 = <&i2c0_sleep>;
+// 	pinctrl-names = "default", "sleep";
+// };
+
+
+// &i2c1 {
+// 	compatible = "nordic,nrf-twi";
+// 	/* Cannot be used together with spi1. */
+// 	/* status = "okay"; */
+// 	pinctrl-0 = <&i2c1_default>;
+// 	pinctrl-1 = <&i2c1_sleep>;
+// 	pinctrl-names = "default", "sleep";
+// };
+
+// &pwm0 {
+// 	status = "okay";
+// 	pinctrl-0 = <&pwm0_default>;
+// 	pinctrl-1 = <&pwm0_sleep>;
+// 	pinctrl-names = "default", "sleep";
+// };
+
+// &spi0 {
+// 	compatible = "nordic,nrf-spi";
+// 	/* Cannot be used together with i2c0. */
+// 	/* status = "okay"; */
+// 	pinctrl-0 = <&spi0_default>;
+// 	pinctrl-1 = <&spi0_sleep>;
+// 	pinctrl-names = "default", "sleep";
+// };
+
+&spi1 {
+	compatible = "nordic,nrf-spi";
+	status = "okay";
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-names = "default", "sleep";
+	cs-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+
+	lcd0: lcd@0 {
+		compatible = "sitronix,st75256";
+		reg = <0>;
+		status = "okay";
+		spi-max-frequency = <4000000>;
+		cmd-data-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;
+		width = <128>;
+		height = <160>;
+		auto_read = [9f];
+		analog_circuit = [00 01 00];
+		gray_level = [01 03 05 07 09 0b 0d 10 11 13 15 17 19 1b 1d 1f];
+		data_scan = [00];
+		display_control = [00 9f 20];
+		color_mode = [10];
+		volume_control = [18 05];
+		power_control = [0b];
+		row_range = [00 7f];
+		col_range = [00 13];
+		power-domain = <&powerdomain0>;
+	};
+};
+
+// &spi2 {
+// 	compatible = "nordic,nrf-spi";
+// 	status = "disabled";
+// 	pinctrl-0 = <&spi2_default>;
+// 	pinctrl-1 = <&spi2_sleep>;
+// 	pinctrl-names = "default", "sleep";
+// };
+
+
+&qspi {
+	status = "okay";
+	pinctrl-0 = <&qspi_default>;
+	pinctrl-1 = <&qspi_sleep>;
+	pinctrl-names = "default", "sleep";
+	mx25r64: mx25r6435f@0 {
+		compatible = "nordic,qspi-nor";
+		reg = <0>;
+		/* MX25R64 supports only pp and pp4io */
+		writeoc = "pp4io";
+		/* MX25R64 supports all readoc options */
+		readoc = "read4io";
+		sck-frequency = <8000000>;
+		jedec-id = [c2 28 17];
+		sfdp-bfp = [
+			e5 20 f1 ff  ff ff ff 03  44 eb 08 6b  08 3b 04 bb
+			ee ff ff ff  ff ff 00 ff  ff ff 00 ff  0c 20 0f 52
+			10 d8 00 ff  23 72 f5 00  82 ed 04 cc  44 83 68 44
+			30 b0 30 b0  f7 c4 d5 5c  00 be 29 ff  f0 d0 ff ff
+		];
+		size = <67108864>;
+		has-dpd;
+		t-enter-dpd = <10000>;
+		t-exit-dpd = <35000>;
+	};
+};
+
+
+&ieee802154 {
+	status = "okay";
+};
+
+&flash0 {
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0x0000C000>;
+		};
+		slot0_partition: partition@c000 {
+			label = "image-0";
+			reg = <0x0000C000 0x00076000>;
+		};
+		slot1_partition: partition@82000 {
+			label = "image-1";
+			reg = <0x00082000 0x00076000>;
+		};
+
+		/*
+		 * The flash starting at 0x000f8000 and ending at
+		 * 0x000fffff is reserved for use by the application.
+		 */
+
+		/*
+		 * Storage partition will be used by FCB/LittleFS/NVS
+		 * if enabled.
+		 */
+		storage_partition: partition@f8000 {
+			label = "storage";
+			reg = <0x000f8000 0x00008000>;
+		};
+	};
+};
+
+zephyr_udc0: &usbd {
+	compatible = "nordic,nrf-usbd";
+	status = "okay";
+};
