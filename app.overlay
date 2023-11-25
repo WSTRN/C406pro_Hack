@@ -20,14 +20,6 @@
 		/delete-node/ group1;
 	};
 
-	i2c0_default: i2c0_default {
-		/delete-node/ group1;
-	};
-
-	i2c0_sleep: i2c0_sleep {
-		/delete-node/ group1;
-	};
-
 	i2c1_default: i2c1_default {
 		/delete-node/ group1;
 	};

@@ -1,0 +1,9 @@
+# SPL06 digital pressure sensor driver configuration options
+
+config SPL06
+	bool "SPL06 pressure sensor driver"
+	default n
+	select I2C
+	select SENSOR
+	help
+		Enable driver for SPL06 digital pressure sensor driver.

@@ -28,7 +28,8 @@
 			"util_internal.h": "c",
 			"util.h": "c",
 			"display.h": "c",
-			"device.h": "c"
+			"device.h": "c",
+			"math.h": "c"
 		},
 		"python.defaultInterpreterPath": "python",
 		"kconfig.root": "${workspaceFolder}/Kconfig",

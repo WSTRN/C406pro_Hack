@@ -5,10 +5,12 @@
 #include <zephyr/drivers/adc.h>
 #include <zephyr/devicetree.h>
 #include <zephyr/device.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/sys/poweroff.h>
 
 LOG_MODULE_REGISTER(button, LOG_LEVEL_INF);
 
-#define BTN_STACK_SIZE 256
+#define BTN_STACK_SIZE 512
 #define BTN_PRIORITY 4
 K_THREAD_STACK_DEFINE(btn_stack_area, BTN_STACK_SIZE);
 struct k_thread btn_thread_data;
@@ -17,6 +19,11 @@ k_tid_t btn_tid;
 const struct gpio_dt_spec dev_btn0 = GPIO_DT_SPEC_GET(DT_NODELABEL(button0), gpios);
 const struct gpio_dt_spec dev_btn1 = GPIO_DT_SPEC_GET(DT_NODELABEL(button1), gpios);
 const struct gpio_dt_spec dev_btn2 = GPIO_DT_SPEC_GET(DT_NODELABEL(button2), gpios);
+extern struct device* ext_power;
+extern struct device* display_dev;
+extern struct device* pressure_dev;
+extern struct device *gpio_0;
+extern struct device *gpio_1;
 
 class ButtonEvent btn0;
 class ButtonEvent btn1;
@@ -24,8 +31,18 @@ class ButtonEvent btn2;
 
 static void btn0_EventHandler(ButtonEvent* btn, int event)
 {
-    if(event == ButtonEvent::EVENT_ButtonClick)
+    if(event == ButtonEvent::EVENT_ButtonLongPressed)
+    {
+        LOG_INF("btn0 longpressed");
+        gpio_pin_interrupt_configure_dt(&dev_btn0,  GPIO_INT_LEVEL_ACTIVE);
+        pm_device_action_run(display_dev, PM_DEVICE_ACTION_SUSPEND);
+        pm_device_action_run(pressure_dev, PM_DEVICE_ACTION_SUSPEND);
+        pm_device_action_run(ext_power, PM_DEVICE_ACTION_SUSPEND);
+        sys_poweroff();
+    }
+    else if(event == ButtonEvent::EVENT_ButtonClick)
         LOG_INF("btn0 press");
+        
 }
 static void btn1_EventHandler(ButtonEvent* btn, int event)
 {
@@ -34,8 +51,15 @@ static void btn1_EventHandler(ButtonEvent* btn, int event)
 }
 static void btn2_EventHandler(ButtonEvent* btn, int event)
 {
+    int ret;
     if(event == ButtonEvent::EVENT_ButtonDoubleClick)
         LOG_INF("btn2 press");
+    if(event == ButtonEvent::EVENT_ButtonLongPressed)
+    {
+        LOG_INF("btn2 longpressed");
+        ret = gpio_pin_toggle(gpio_1, 10);
+        LOG_INF("%d", ret);
+    }
 }
 
 void Button_Update()

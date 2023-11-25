@@ -1,2 +1,3 @@
 
 add_subdirectory_ifdef(CONFIG_ST75256 st75256)
+add_subdirectory_ifdef(CONFIG_SPL06 spl06)

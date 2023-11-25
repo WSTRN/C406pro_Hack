@@ -100,13 +100,24 @@
 // 	pinctrl-names = "default", "sleep";
 // };
 
-// &i2c0 {
-// 	compatible = "nordic,nrf-twi";
-// 	status = "okay";
-// 	pinctrl-0 = <&i2c0_default>;
-// 	pinctrl-1 = <&i2c0_sleep>;
-// 	pinctrl-names = "default", "sleep";
-// };
+&i2c0 {
+	compatible = "nordic,nrf-twi";
+	status = "okay";
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-1 = <&i2c0_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	sensor0:sensor@76 {
+		compatible = "goertek,spl06";
+		reg = <0x76>;
+		status = "okay";
+		prs_cfg = [26];
+		tmp_cfg = [a2];
+		cfg_reg = [04];
+		meas_cfg = [07];
+		power-domain = <&powerdomain0>;
+	};
+};
 
 
 // &i2c1 {

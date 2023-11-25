@@ -9,6 +9,7 @@
 #include <zephyr/pm/device.h>
 #include <zephyr/sys/poweroff.h>
 #include <lvgl.h>
+#include <zephyr/drivers/sensor.h>
 
 #include "main_page.h"
 #include "battery.h"
@@ -22,10 +23,9 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 const struct device *gpio_0;
 const struct device *gpio_1;
-extern struct device *display_dev;
-
-
+const struct device *display_dev;
 const struct device *ext_power;
+const struct device *pressure_dev;
 
 
 int main()
@@ -37,14 +37,17 @@ int main()
     gpio_0 = device_get_binding("gpio@50000000");
 	gpio_1 = device_get_binding("gpio@50000300");
 	ext_power = DEVICE_DT_GET(DT_NODELABEL(powerdomain0));
+	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+	pressure_dev = DEVICE_DT_GET(DT_NODELABEL(sensor0));
 	
 	gpio_pin_configure(gpio_0, 29, GPIO_INPUT);
 	gpio_pin_configure(gpio_0, 31, GPIO_INPUT);
-
+	gpio_pin_configure(gpio_1, 10, GPIO_OUTPUT_INACTIVE);
 
 	battery_sensor_init();
 	ButtonEvent_Init();
 	main_page();
+	
 	// display_blanking_off(display_dev);
 	// k_msleep(4000);
 	// err = pm_device_action_run(display_dev, PM_DEVICE_ACTION_SUSPEND);
