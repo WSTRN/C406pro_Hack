@@ -6,7 +6,7 @@
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/sensor.h>
 
-#include<math.h>
+#include <math.h>
 
 #include "battery.h"
 

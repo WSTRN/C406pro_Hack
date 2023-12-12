@@ -38,6 +38,20 @@ static void btn0_EventHandler(ButtonEvent* btn, int event)
         pm_device_action_run(display_dev, PM_DEVICE_ACTION_SUSPEND);
         pm_device_action_run(pressure_dev, PM_DEVICE_ACTION_SUSPEND);
         pm_device_action_run(ext_power, PM_DEVICE_ACTION_SUSPEND);
+        for(int i = 0; i < 32; i++)
+	    {
+	    	if(i==dev_btn0.pin)
+	    	{
+	    		continue;
+	    	}		
+	    	gpio_pin_configure(gpio_0, i, GPIO_DISCONNECTED);
+	    	gpio_pin_set(gpio_0, i, 0);
+	    }
+	    for(int i = 0; i < 16; i++)
+	    {
+	    	gpio_pin_configure(gpio_1, i, GPIO_DISCONNECTED);
+	    	gpio_pin_set(gpio_1, i, 0);
+	    }
         sys_poweroff();
     }
     else if(event == ButtonEvent::EVENT_ButtonClick)
