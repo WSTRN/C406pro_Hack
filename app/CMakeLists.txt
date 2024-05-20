@@ -4,7 +4,7 @@ set(BOARD C406pro)
 set(BOARD_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Add our custom Zephyr module for drivers, etc.
-# set(EXTRA_ZEPHYR_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/module)
+set(EXTRA_ZEPHYR_MODULES ${CMAKE_CURRENT_SOURCE_DIR}/module)
 
 find_package(Zephyr)
 project(C406pro_Hack)
@@ -22,4 +22,4 @@ target_sources(app PRIVATE
 
 
 # Add drivers
-add_subdirectory(drivers)
+#add_subdirectory(module/drivers)
