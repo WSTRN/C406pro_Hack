@@ -12,7 +12,7 @@ project(C406pro_Hack)
 target_include_directories(app PRIVATE
     src
 )
-target_sources(app PRIVATE 
+target_sources(app PRIVATE
     src/main.c
     src/main_page.c
     src/battery.c
@@ -20,6 +20,3 @@ target_sources(app PRIVATE
     src/button_event.cpp
 )
 
-
-# Add drivers
-#add_subdirectory(module/drivers)

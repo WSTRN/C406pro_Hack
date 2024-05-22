@@ -4,16 +4,15 @@ config ST75256
 	bool "ST75256 display driver"
 	default n
 	select SPI
-	select DISPLAY
 	help
 		Enable driver for ST75256 display driver.
 
-# config DISPLAY_INIT_PRIORITY
-# 	int "Display devices init priority"
-# 	default 85
-# 	help
-# 	  Display devices initialization priority.
+config DISPLAY_INIT_PRIORITY
+	int "Display devices init priority"
+	default 85
+	help
+	  Display devices initialization priority.
 
-# module = DISPLAY
-# module-str = display
-# source "subsys/logging/Kconfig.template.log_config"
+module = DISPLAY
+module-str = display
+source "subsys/logging/Kconfig.template.log_config"

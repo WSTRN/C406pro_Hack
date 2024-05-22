@@ -1,0 +1,8 @@
+CompileFlags:
+  Add:
+    - -Wno-unknown-warning-option
+  Remove:
+    - -mword-relocations
+    - -fno-reorder-functions
+    - -mfp16-format=ieee
+    - -fno-printf-return-value

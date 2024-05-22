@@ -4,3 +4,5 @@ tools
 modules
 bootloader
 .west
+.cache
+.idea
