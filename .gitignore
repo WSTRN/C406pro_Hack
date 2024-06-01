@@ -6,3 +6,4 @@ bootloader
 .west
 .cache
 .idea
+*.jdebug.user
