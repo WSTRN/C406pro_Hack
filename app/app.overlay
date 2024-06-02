@@ -11,15 +11,6 @@
 		/delete-node/ group1;
 	};
 
-	uart1_default: uart1_default {
-		/delete-node/ group1;
-		/delete-node/ group2;
-	};
-
-	uart1_sleep: uart1_sleep {
-		/delete-node/ group1;
-	};
-
 	i2c1_default: i2c1_default {
 		/delete-node/ group1;
 	};

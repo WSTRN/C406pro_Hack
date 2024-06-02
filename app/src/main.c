@@ -14,6 +14,7 @@
 #include "main_page.h"
 #include "battery.h"
 #include "button.h"
+#include "gnss.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -47,6 +48,8 @@ int main()
 	battery_sensor_init();
 	ButtonEvent_Init();
 	main_page();
+	k_msleep(200);
+	gnss_init();
 	
 	// display_blanking_off(display_dev);
 	// k_msleep(4000);
