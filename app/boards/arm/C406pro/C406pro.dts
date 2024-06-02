@@ -61,6 +61,7 @@
 		mcuboot-button0 = &button0;
 		watchdog0 = &wdt0;
 		spi-flash0 = &mx25r64;
+		gnss-uart = &uart1;
 	};
 };
 
@@ -93,12 +94,14 @@
 	pinctrl-names = "default", "sleep";
 };
 
-// &uart1 {
-// 	current-speed = <115200>;
-// 	pinctrl-0 = <&uart1_default>;
-// 	pinctrl-1 = <&uart1_sleep>;
-// 	pinctrl-names = "default", "sleep";
-// };
+&uart1 {
+	compatible = "nordic,nrf-uarte";
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart1_default>;
+	pinctrl-1 = <&uart1_sleep>;
+	pinctrl-names = "default", "sleep";
+};
 
 &i2c0 {
 	compatible = "nordic,nrf-twi";

@@ -18,5 +18,6 @@ target_sources(app PRIVATE
     src/battery.c
     src/button.cpp
     src/button_event.cpp
+	src/gnss.c
 )
 
