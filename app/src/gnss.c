@@ -1,121 +1,122 @@
 #include "gnss.h"
 
+#include <string.h>
+
 #include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
-#include <string.h>
-
-#include "zephyr/kernel/thread.h"
-
 LOG_MODULE_REGISTER(gnss, LOG_LEVEL_INF);
 
-#define GNSS_STACK_SIZE 2048
-#define GNSS_PRIORITY 5
-K_THREAD_STACK_DEFINE(gnss_stack_area, GNSS_STACK_SIZE);
-struct k_thread gnss_thread_data;
-k_tid_t gnss_tid;
+#define GNSS_UART_NODE DT_ALIAS(gnss_uart)
+#define GNSS_RESET_PIN 6
+#define GNSS_BAUD_RATE 115200
+#define RX_LINE_LEN    128
 
-static const struct device *const uart_dev = DEVICE_DT_GET(DT_ALIAS(gnss_uart));
+BUILD_ASSERT(DT_NODE_HAS_STATUS(GNSS_UART_NODE, okay),
+	     "gnss-uart alias must point to an enabled UART");
 
-static char rx_buf[128];
-static int rx_buf_pos;
-K_MSGQ_DEFINE(uart_msgq, 128, 3, 4);
+static const struct device *const gnss_uart = DEVICE_DT_GET(GNSS_UART_NODE);
+static const struct device *const gpio0_dev = DEVICE_DT_GET(DT_NODELABEL(gpio0));
 
-void print_uart(char *buf)
+static char rx_line[RX_LINE_LEN];
+static size_t rx_line_len;
+
+static void log_rx_line(void)
 {
-    int msg_len = strlen(buf);
+	if (rx_line_len == 0U) {
+		return;
+	}
 
-    for (int i = 0; i < msg_len; i++)
-    {
-        uart_poll_out(uart_dev, buf[i]);
-    }
+	rx_line[rx_line_len] = '\0';
+	LOG_INF("GNSS RX: %s", rx_line);
+	rx_line_len = 0U;
 }
 
-void serial_cb(const struct device *dev, void *user_data)
+static void gnss_uart_isr(const struct device *dev, void *user_data)
 {
-    uint8_t c;
+	uint8_t buf[16];
 
-    if (!uart_irq_update(uart_dev))
-    {
-        return;
-    }
+	ARG_UNUSED(user_data);
 
-    if (!uart_irq_rx_ready(uart_dev))
-    {
-        return;
-    }
+	if (!uart_irq_update(dev)) {
+		return;
+	}
 
-    /* read until FIFO empty */
-    while (uart_fifo_read(uart_dev, &c, 1) == 1)
-    {
-        if ((c == '\n' || c == '\r') && rx_buf_pos > 0)
-        {
-            /* terminate string */
-            rx_buf[rx_buf_pos] = '\0';
+	while (uart_irq_rx_ready(dev)) {
+		int read = uart_fifo_read(dev, buf, sizeof(buf));
 
-            /* if queue is full, message is silently dropped */
-            k_msgq_put(&uart_msgq, &rx_buf, K_NO_WAIT);
+		if (read <= 0) {
+			break;
+		}
 
-            /* reset the buffer (it was copied to the msgq) */
-            rx_buf_pos = 0;
-        }
-        else if (rx_buf_pos < (sizeof(rx_buf) - 1))
-        {
-            rx_buf[rx_buf_pos++] = c;
-        }
-        /* else: characters beyond buffer size are dropped */
-    }
+		for (int i = 0; i < read; i++) {
+			uint8_t ch = buf[i];
+
+			if (ch == '\r' || ch == '\n') {
+				log_rx_line();
+				continue;
+			}
+
+			if (rx_line_len >= (RX_LINE_LEN - 1U)) {
+				LOG_WRN("GNSS line too long, truncating");
+				log_rx_line();
+			}
+
+			rx_line[rx_line_len++] = (char)ch;
+		}
+	}
 }
 
-void gnss_entry_point(void *, void *, void *)
+static int gnss_uart_setup(void)
 {
-    // gnss code here
-    char tx_buf[] = "$PDTINFO\r\n";
-	char gnss_buf[128];
+	if (!device_is_ready(gnss_uart)) {
+		LOG_ERR("GNSS UART device not ready");
+		return -1;
+	}
 
-    if (!device_is_ready(uart_dev))
-    {
-        printk("UART device not found!");
-        return;
-    }
+	int ret = uart_irq_callback_user_data_set(gnss_uart, gnss_uart_isr, NULL);
+	if (ret < 0) {
+		LOG_ERR("uart_irq_callback_user_data_set failed: %d", ret);
+		return ret;
+	}
 
-    /* configure interrupt and callback to receive data */
-    int ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
+	uart_irq_rx_enable(gnss_uart);
+	LOG_INF("GNSS UART ready on uart1 (board default: %d 8N1)", GNSS_BAUD_RATE);
 
-    if (ret < 0)
-    {
-        if (ret == -ENOTSUP)
-        {
-            printk("Interrupt-driven UART API support not enabled\n");
-        }
-        else if (ret == -ENOSYS)
-        {
-            printk("UART device does not support interrupt-driven API\n");
-        }
-        else
-        {
-            printk("Error setting UART callback: %d\n", ret);
-        }
-        return;
-    }
-    uart_irq_rx_enable(uart_dev);
-
-    for (;;)
-    {
-        print_uart(tx_buf);
-        while (k_msgq_get(&uart_msgq, &gnss_buf, K_FOREVER) == 0)
-        {
-			LOG_INF("%s\r\n", gnss_buf);
-        }
-		k_sleep(K_MSEC(1000));
-    }
+	return 0;
 }
 
-void gnss_init()
+static void gnss_reset_release(void)
 {
-    // gnss init code here
-    gnss_tid = k_thread_create(&gnss_thread_data, gnss_stack_area, K_THREAD_STACK_SIZEOF(gnss_stack_area),
-                               gnss_entry_point, NULL, NULL, NULL, GNSS_PRIORITY, 0, K_NO_WAIT);
+	int ret;
+
+	if (!device_is_ready(gpio0_dev)) {
+		LOG_WRN("GPIO0 not ready, skip UC6226 reset");
+		return;
+	}
+
+	ret = gpio_pin_configure(gpio0_dev, GNSS_RESET_PIN, GPIO_OUTPUT_ACTIVE);
+	if (ret < 0) {
+		LOG_WRN("Failed to drive UC6226 reset high: %d", ret);
+		return;
+	}
+
+	LOG_INF("UC6226 reset released on P0.06");
+}
+
+void gnss_init(void)
+{
+	LOG_INF("GNSS UART logger start");
+
+	gnss_reset_release();
+
+	if (gnss_uart_setup() < 0) {
+		LOG_ERR("GNSS UART init failed");
+		return;
+	}
+
+	LOG_INF("Waiting for GNSS NMEA data...");
 }
