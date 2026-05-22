@@ -57,7 +57,7 @@ static const char *hdop_grade(uint16_t hdop_x10)
 		return "--";
 	}
 	if (hdop_x10 < 10U) {
-		return "Excellent";
+		return "Exce";
 	}
 	if (hdop_x10 < 20U) {
 		return "Good";
