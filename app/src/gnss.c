@@ -208,19 +208,35 @@ static void gnss_parse_gga(const char *sentence)
 
 static void gnss_parse_rmc(const char *sentence)
 {
+	char status[4];
 	char speed_knots[16];
 	char course_deg[16];
 	uint16_t speed_knots_x10;
 	uint16_t course_deg_x10;
 	unsigned int key;
 
-	if (!nmea_get_field(sentence, 7, speed_knots, sizeof(speed_knots)) ||
+	if (!nmea_get_field(sentence, 2, status, sizeof(status)) ||
+	    !nmea_get_field(sentence, 7, speed_knots, sizeof(speed_knots)) ||
 	    !nmea_get_field(sentence, 8, course_deg, sizeof(course_deg))) {
+		return;
+	}
+
+	if (status[0] != 'A') {
+		key = irq_lock();
+		gnss_info_cache.speed_kmh_x10 = 0U;
+		gnss_info_cache.course_deg_x10 = 0U;
+		irq_unlock(key);
 		return;
 	}
 
 	if (!nmea_decimal_to_x10(speed_knots, &speed_knots_x10) ||
 	    !nmea_decimal_to_x10(course_deg, &course_deg_x10)) {
+		return;
+	}
+
+	if (course_deg_x10 > 3599U) {
+		LOG_WRN("Ignore invalid course value: %u.%u deg",
+			course_deg_x10 / 10U, course_deg_x10 % 10U);
 		return;
 	}
 
