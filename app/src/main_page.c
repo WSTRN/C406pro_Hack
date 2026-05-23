@@ -100,7 +100,7 @@ void info_update(lv_timer_t * timer)
 		format_coord(gnss.lat_e6, true, lat_buf, sizeof(lat_buf));
 		format_coord(gnss.lon_e6, false, lon_buf, sizeof(lon_buf));
 		snprintf(gnss_buf, sizeof(gnss_buf),
-			 "Lat:%s\nLon:%s\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%ukm/h\nCog:%u.%udeg",
+			 "Lat:%s\nLon:%s\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%u km/h\nCog:%u.%u deg",
 			 lat_buf, lon_buf,
 			 gnss.hdop_x10 / 10U, gnss.hdop_x10 % 10U, hdop_text,
  			gnss.quality,
@@ -109,7 +109,7 @@ void info_update(lv_timer_t * timer)
 			 gnss.course_deg_x10 / 10U, gnss.course_deg_x10 % 10U);
 	} else {
 		snprintf(gnss_buf, sizeof(gnss_buf),
-			 "Lat:--\nLon:--\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%ukm/h\nCog:%u.%udeg",
+			 "Lat:--\nLon:--\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%u km/h\nCog:%u.%u deg",
 			 gnss.hdop_x10 / 10U, gnss.hdop_x10 % 10U, hdop_text,
 			gnss.quality, 
 			 gnss.satellites,
@@ -169,7 +169,7 @@ void lvgl_entry_point(void *, void *, void *)
 	main_page_objs.gnss = lv_label_create(lv_scr_act());
 	lv_label_set_long_mode(main_page_objs.gnss, LV_LABEL_LONG_WRAP);
 	lv_obj_set_width(main_page_objs.gnss, 128);
-	lv_label_set_text(main_page_objs.gnss, "Lat:--\nLon:--\nHDOP:0.0 --\nQ:0\nSat:0\nSpd:0.0km/h\nCog:0.0deg");
+	lv_label_set_text(main_page_objs.gnss, "Lat:--\nLon:--\nHDOP:0.0 --\nQ:0\nSat:0\nSpd:0.0 km/h\nCog:0.0 deg");
 	lv_obj_align(main_page_objs.gnss, LV_ALIGN_TOP_LEFT, 0, 94);
 
 	/*Create a buffer for the canvas*/
