@@ -41,11 +41,12 @@ C406pro is a bike computer from Magene. This repository includes a customized fi
 ### Features
 - Zephyr RTOS
 - LVGL GUI
-- Display driver
-- Pressure sensor driver
-- Battery voltage monitoring
-- Pressure and temperature monitoring
 - Altitude estimation
+- GNSS positioning
+- Offline map
+- Route tracking
+- LittleFS file system
+- BLE file transfer
 - Button handling
 - Power management
 
@@ -84,9 +85,15 @@ west build -p=auto
 ```
 
 ### TODO
-- [ ] Add BLE support
-- [ ] Add GPS support
-- [ ] Add Flash storage support
+- [ ] Flash driver support
+- [ ] Add BLE GATT file transfer support
+- [ ] GPS driver support
+- [ ] Add page manager
+- [ ] Add status bar
+- [ ] Add a debug page
+- [ ] Page one: speed, direction, altitude and termperature.
+- [ ] Page two: Map page with current position, speed and track.
+- [ ] Page three: Track page to start/stop recording and show track history.
 - [ ] Add offline maps support
 - [ ] Add track recording support
 - [ ] Add power saving mode
