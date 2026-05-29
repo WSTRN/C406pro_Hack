@@ -7,15 +7,6 @@
 	"settings": {
 		"kconfig.zephyr.west": "/opt/homebrew/Caskroom/miniconda/base/envs/zephyr/bin/west",
 		"python.defaultInterpreterPath": "/opt/homebrew/Caskroom/miniconda/base/envs/zephyr/bin/python",
-		"terminal.integrated.profiles.osx": {
-			"zsh-conda": {
-				"path": "/bin/zsh",
-				"args": [
-					"-c",
-					"source /opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh && conda activate zephyr && exec /bin/zsh",
-				],
-			},
-		},
-		"terminal.integrated.defaultProfile.osx": "zsh-conda",
-	},
+		"C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
+	}
 }
