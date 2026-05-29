@@ -17,6 +17,7 @@ target_sources(app PRIVATE
     src/main_page.c
     src/battery.c
     src/qspi_flash_test.c
+    src/littlefs_test.c
     src/button.cpp
     src/button_event.cpp
 )

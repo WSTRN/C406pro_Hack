@@ -15,6 +15,7 @@
 #include "battery.h"
 #include "button.h"
 #include "qspi_flash_test.h"
+#include "littlefs_test.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -45,6 +46,7 @@ int main()
 
 	battery_sensor_init();
 	qspi_flash_test();
+	littlefs_test();
 	ButtonEvent_Init();
 	main_page();
 	
