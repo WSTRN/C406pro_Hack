@@ -52,15 +52,6 @@
 		/delete-node/ group1;
 	};
 
-	qspi_default: qspi_default {
-		/delete-node/ group1;
-	};
-
-	qspi_sleep: qspi_sleep {
-		/delete-node/ group1;
-		/delete-node/ group2;
-	};
-
 	spi3_default: spi3_default {
 		/delete-node/ group1;
 	};

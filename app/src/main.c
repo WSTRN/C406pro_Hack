@@ -14,6 +14,7 @@
 #include "main_page.h"
 #include "battery.h"
 #include "button.h"
+#include "qspi_flash_test.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -32,8 +33,6 @@ int main()
 {
 	LOG_INF("GPIO TEST!!!!!!!");
 
-	int err;
-
     gpio_0 = device_get_binding("gpio@50000000");
 	gpio_1 = device_get_binding("gpio@50000300");
 	ext_power = DEVICE_DT_GET(DT_NODELABEL(powerdomain0));
@@ -45,6 +44,7 @@ int main()
 	gpio_pin_configure(gpio_1, 10, GPIO_OUTPUT_INACTIVE);
 
 	battery_sensor_init();
+	qspi_flash_test();
 	ButtonEvent_Init();
 	main_page();
 	
