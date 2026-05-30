@@ -14,6 +14,7 @@
 #include "main_page.h"
 #include "battery.h"
 #include "button.h"
+#include "ble_nus_shell.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -32,8 +33,6 @@ int main()
 {
 	LOG_INF("GPIO TEST!!!!!!!");
 
-	int err;
-
     gpio_0 = device_get_binding("gpio@50000000");
 	gpio_1 = device_get_binding("gpio@50000300");
 	ext_power = DEVICE_DT_GET(DT_NODELABEL(powerdomain0));
@@ -47,6 +46,7 @@ int main()
 	battery_sensor_init();
 	ButtonEvent_Init();
 	main_page();
+	(void)ble_nus_shell_start();
 	
 	// display_blanking_off(display_dev);
 	// k_msleep(4000);
