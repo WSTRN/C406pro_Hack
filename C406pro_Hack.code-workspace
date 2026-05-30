@@ -8,5 +8,6 @@
 		"kconfig.zephyr.west": "/opt/homebrew/Caskroom/miniconda/base/envs/zephyr/bin/west",
 		"python.defaultInterpreterPath": "/opt/homebrew/Caskroom/miniconda/base/envs/zephyr/bin/python",
 		"C_Cpp.default.compileCommands": "${workspaceFolder}/app/build/compile_commands.json",
+		"kconfig.root": "${workspaceFolder}/app/Kconfig",
 	}
 }
