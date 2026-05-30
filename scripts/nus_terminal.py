@@ -51,6 +51,7 @@ async def find_device(name: str, timeout: float):
     if device is None:
         raise RuntimeError(f"Could not find BLE device named {name!r}")
 
+    print(f"Found device: {device.name} ({device.address})", file=sys.stderr)
     return device
 
 

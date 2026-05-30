@@ -265,6 +265,10 @@ int ble_nus_shell_start(void)
 		BT_DATA(BT_DATA_NAME_COMPLETE, CONFIG_BT_DEVICE_NAME,
 			sizeof(CONFIG_BT_DEVICE_NAME) - 1),
 	};
+	static const struct bt_data sd[] = {
+		BT_DATA(BT_DATA_UUID128_ALL, (uint8_t *)&nus_uuid.val,
+			sizeof(nus_uuid.val)),
+	};
 	int err;
 
 	err = bt_enable(NULL);
@@ -273,7 +277,7 @@ int ble_nus_shell_start(void)
 		return err;
 	}
 
-	err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), NULL, 0);
+	err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 	if (err) {
 		LOG_ERR("Bluetooth advertising failed: %d", err);
 		return err;
