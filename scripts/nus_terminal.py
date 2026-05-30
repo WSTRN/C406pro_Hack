@@ -30,6 +30,8 @@ def stdin_cbreak():
     new_attrs[3] &= ~(termios.ICANON | termios.ECHO)
     new_attrs[6][termios.VMIN] = 1
     new_attrs[6][termios.VTIME] = 0
+    # Disable VINTR (Ctrl+C) signal generation so we can handle it ourselves
+    new_attrs[6][termios.VINTR] = 0
 
     try:
         termios.tcsetattr(fd, termios.TCSADRAIN, new_attrs)
@@ -61,6 +63,10 @@ async def stdin_bytes(queue: asyncio.Queue):
         if data == b"":
             await queue.put(None)
             return
+        # Exit on Ctrl+D (0x04), send everything else to device
+        if b'\x04' in data:
+            await queue.put(None)
+            return
         await queue.put(data)
 
 
@@ -79,6 +85,9 @@ async def run(args):
             print(text, end="", flush=True)
 
         await client.start_notify(NUS_TX_UUID, on_rx)
+        
+        # Send a newline to trigger shell prompt
+        await client.write_gatt_char(NUS_RX_UUID, b"\r", response=False)
 
         queue = asyncio.Queue()
         stdin_task = asyncio.create_task(stdin_bytes(queue))
