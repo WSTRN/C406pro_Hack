@@ -14,7 +14,6 @@
 #include "main_page.h"
 #include "battery.h"
 #include "button.h"
-#include "qspi_flash_test.h"
 #include "littlefs_test.h"
 
 #include <inttypes.h>
@@ -45,7 +44,6 @@ int main()
 	gpio_pin_configure(gpio_1, 10, GPIO_OUTPUT_INACTIVE);
 
 	battery_sensor_init();
-	qspi_flash_test();
 	littlefs_test();
 	ButtonEvent_Init();
 	main_page();

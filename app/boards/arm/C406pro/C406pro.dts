@@ -193,37 +193,43 @@
 	gd25q256: gd25q256@0 {
 		compatible = "nordic,qspi-nor";
 		reg = <0>;
-		writeoc = "pp4o";
-		readoc = "read4io";
-		sck-frequency = <32000000>;
+		power-domain = <&powerdomain0>;
+
 		jedec-id = [c8 40 19];
 		size = <268435456>;
+
+		sck-frequency = <32000000>;
+
+		writeoc = "pp4o";
+		readoc = "read4io";
+
 		address-size-32;
 		enter-4byte-addr = <0x01>;
+
 		quad-enable-requirements = "S2B1v1";
-		has-dpd;
-		t-enter-dpd = <10000>;
-		t-exit-dpd = <35000>;
-		power-domain = <&powerdomain0>;
+
+		// has-dpd;
+		// t-enter-dpd = <10000>;
+		// t-exit-dpd = <35000>;
 
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			qspi_test_partition: partition@0 {
-				label = "qspi-test";
-				reg = <0x00000000 0x00010000>;
+			config_partition: partition@0 {
+				label = "config";
+				reg = <0x00000000 0x00010000>; /* 64KB */
 			};
-
-			littlefs_partition: partition@10000 {
-				label = "littlefs";
-				reg = <0x00010000 0x01fe0000>;
+		
+			log_partition: partition@10000 {
+				label = "log";
+				reg = <0x00010000 0x000F0000>; /* 960KB */
 			};
-
-			qspi_test_high_partition: partition@1ff0000 {
-				label = "qspi-test-high";
-				reg = <0x01ff0000 0x00010000>;
+		
+			littlefs_partition: partition@100000 {
+				label = "littlefs_partition";
+				reg = <0x00100000 0x01F00000>; /* 31MB */
 			};
 		};
 	};
