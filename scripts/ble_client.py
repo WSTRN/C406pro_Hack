@@ -65,7 +65,7 @@ async def stdin_bytes(queue: asyncio.Queue):
             await queue.put(None)
             return
         # Exit on Ctrl+D (0x04), send everything else to device
-        if b'\x04' in data:
+        if b"\x04" in data:
             await queue.put(None)
             return
         await queue.put(data)
@@ -86,7 +86,7 @@ async def run(args):
             print(text, end="", flush=True)
 
         await client.start_notify(NUS_TX_UUID, on_rx)
-        
+
         # Send a newline to trigger shell prompt
         await client.write_gatt_char(NUS_RX_UUID, b"\r", response=False)
 
@@ -120,10 +120,14 @@ async def write_stdin_to_nus(
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="BLE Nordic UART Service shell terminal")
+    parser = argparse.ArgumentParser(
+        description="BLE Nordic UART Service shell terminal"
+    )
     parser.add_argument("-n", "--name", default="C406Pro_Hack", help="BLE device name")
     parser.add_argument("-a", "--address", help="BLE address/UUID to connect directly")
-    parser.add_argument("--scan-timeout", type=float, default=10.0, help="scan timeout in seconds")
+    parser.add_argument(
+        "--scan-timeout", type=float, default=10.0, help="scan timeout in seconds"
+    )
     parser.add_argument(
         "--with-response",
         action="store_true",
