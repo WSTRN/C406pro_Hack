@@ -14,7 +14,8 @@
 #include "main_page.h"
 #include "battery.h"
 #include "button.h"
-#include "ble_nus_shell.h"
+#include "ble/ble.h"
+#include "shell_service.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -46,7 +47,8 @@ int main()
 	battery_sensor_init();
 	ButtonEvent_Init();
 	main_page();
-	(void)ble_nus_shell_start();
+	(void)shell_service_start();
+	(void)ble_start();
 	
 	// display_blanking_off(display_dev);
 	// k_msleep(4000);
