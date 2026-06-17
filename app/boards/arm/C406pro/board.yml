@@ -1,5 +1,5 @@
 board:
   name: C406pro
-  vendor: others
+  vendor: Magene
   socs:
     - name: nrf52840
