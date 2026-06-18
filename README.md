@@ -19,7 +19,7 @@ C406pro is a bike computer from Magene. This repository includes a customized fi
 | P1.06 | Display CS |
 | P1.10 | Display BL |
 | P0.08 | Power mos |
-| P0.09 | Beep |
+| P0.09 | Buzzer |
 | P0.20 | Flash Hold |
 | P0.22 | Flash CLK |
 | P0.24 | Flash MOSI |
@@ -58,6 +58,11 @@ git clone git@github.com:WSTRN/C406pro_Hack.git
 #### Go to the project directory
 ```bash
 cd C406pro_Hack
+```
+#### Create Conda environment
+```bash
+conda create -n zephyr python3.12 west
+conda activate zephyr
 ```
 #### Initialize the application
 ```bash
