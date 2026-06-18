@@ -8,6 +8,8 @@
 #include <zephyr/pm/device.h>
 #include <zephyr/sys/poweroff.h>
 
+#include "ble/ble.h"
+
 LOG_MODULE_REGISTER(button, LOG_LEVEL_INF);
 
 #define BTN_STACK_SIZE 512
@@ -67,7 +69,15 @@ static void btn2_EventHandler(ButtonEvent* btn, int event)
 {
     int ret;
     if(event == ButtonEvent::EVENT_ButtonDoubleClick)
-        LOG_INF("btn2 press");
+    {
+        bool enabled = !ble_advertising_is_enabled();
+
+        ret = ble_advertising_set_enabled(enabled);
+        if(ret)
+            LOG_ERR("Bluetooth advertising toggle failed: %d", ret);
+        else
+            LOG_INF("Bluetooth advertising %s", enabled ? "enabled" : "disabled");
+    }
     if(event == ButtonEvent::EVENT_ButtonLongPressed)
     {
         LOG_INF("btn2 longpressed");

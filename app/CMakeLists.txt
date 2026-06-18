@@ -14,9 +14,10 @@ target_include_directories(app PRIVATE
 )
 target_sources(app PRIVATE
     src/main.c
+    src/ble/ble.c
+    src/ble/shell_ble.c
     src/main_page.c
     src/battery.c
     src/button.cpp
     src/button_event.cpp
 )
-
