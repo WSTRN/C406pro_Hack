@@ -45,7 +45,8 @@ async def find_device(name: str, timeout: float):
 
     def match(device, adv):
         names = {device.name, adv.local_name}
-        return name in names or NUS_SERVICE_UUID.lower() in adv.service_uuids
+        # return name in names or NUS_SERVICE_UUID.lower() in adv.service_uuids
+        return name in names
 
     device = await BleakScanner.find_device_by_filter(match, timeout=timeout)
     if device is None:
@@ -88,7 +89,7 @@ async def run(args):
         await client.start_notify(NUS_TX_UUID, on_rx)
 
         # Send a newline to trigger shell prompt
-        await client.write_gatt_char(NUS_RX_UUID, b"\r", response=False)
+        # await client.write_gatt_char(NUS_RX_UUID, b"\r", response=False)
 
         queue = asyncio.Queue()
         stdin_task = asyncio.create_task(stdin_bytes(queue))
