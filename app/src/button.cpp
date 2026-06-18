@@ -115,4 +115,5 @@ extern "C" void ButtonEvent_Init(void)
                                 ButtonEventTask,
                                 NULL, NULL, NULL,
                                 BTN_PRIORITY, 0, K_NO_WAIT);
+    k_thread_name_set(btn_tid, "button");
 }

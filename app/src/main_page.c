@@ -123,5 +123,6 @@ void main_page()
                                  lvgl_entry_point,
                                  NULL, NULL, NULL,
                                  LVGL_PRIORITY, 0, K_NO_WAIT);
+	k_thread_name_set(lvgl_tid, "lvgl");
 	display_blanking_off(display_dev);
 }
