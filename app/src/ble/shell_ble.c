@@ -32,11 +32,7 @@ struct shell_ble_transport
 static struct shell_ble_transport transport_ctx;
 static bool notify_enabled;
 static bool subscribed_once;
-
-static void redraw_prompt(void)
-{
-    shell_fprintf(&shell_ble, SHELL_NORMAL, "");
-}
+static const struct shell shell_ble;
 
 static void tx_ready(void)
 {
@@ -87,7 +83,7 @@ static void nus_notif_enabled(bool enabled, void *context)
         tx_ready();
         if (subscribed_once)
         {
-            redraw_prompt();
+            shell_fprintf(&shell_ble, SHELL_NORMAL, "");
         }
         subscribed_once = true;
     }
