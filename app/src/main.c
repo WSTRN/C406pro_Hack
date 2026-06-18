@@ -42,6 +42,7 @@ int main()
 	gpio_pin_configure(gpio_0, 29, GPIO_INPUT);
 	gpio_pin_configure(gpio_0, 31, GPIO_INPUT);
 	gpio_pin_configure(gpio_1, 10, GPIO_OUTPUT_INACTIVE);
+	gpio_pin_configure(gpio_0, 9, GPIO_OUTPUT_INACTIVE);
 
 	battery_sensor_init();
 	ButtonEvent_Init();
