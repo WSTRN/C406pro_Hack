@@ -15,7 +15,6 @@
 #include "battery.h"
 #include "button.h"
 #include "ble/ble.h"
-#include "shell_service.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -47,8 +46,7 @@ int main()
 	battery_sensor_init();
 	ButtonEvent_Init();
 	main_page();
-	(void)shell_service_start();
-	(void)ble_start();
+	ble_start();
 	
 	// display_blanking_off(display_dev);
 	// k_msleep(4000);

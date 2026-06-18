@@ -1,9 +1,8 @@
 #include "ble/ble.h"
 
+#include <zephyr/bluetooth/services/nus.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/util.h>
-
-#include "ble/ble_nus.h"
 
 LOG_MODULE_REGISTER(ble, LOG_LEVEL_INF);
 
@@ -13,7 +12,7 @@ static const uint8_t ad_flags[] = {
 	BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR,
 };
 static const uint8_t service_uuids[] = {
-	BLE_NUS_SERVICE_UUID_BYTES,
+	BT_UUID_NUS_SRV_VAL,
 };
 
 static void connected(struct bt_conn *conn, uint8_t err)
