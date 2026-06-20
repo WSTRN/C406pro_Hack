@@ -15,7 +15,6 @@
 #include "battery.h"
 #include "button.h"
 #include "ble/ble.h"
-#include "littlefs_test.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -46,7 +45,6 @@ int main()
 	gpio_pin_configure(gpio_0, 9, GPIO_OUTPUT_INACTIVE);
 
 	battery_sensor_init();
-	littlefs_test();
 	ButtonEvent_Init();
 	main_page();
 	ble_start();

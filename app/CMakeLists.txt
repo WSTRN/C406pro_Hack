@@ -18,7 +18,8 @@ target_sources(app PRIVATE
     src/ble/shell_ble.c
     src/main_page.c
     src/battery.c
-    src/littlefs_test.c
+    src/cmd/test_fs.c
+    src/cmd/test_flash.c
     src/button.cpp
     src/button_event.cpp
 )
