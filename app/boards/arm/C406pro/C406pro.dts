@@ -227,8 +227,8 @@
 				reg = <0x00010000 0x000F0000>; /* 960KB */
 			};
 
-			littlefs_partition: partition@100000 {
-				label = "littlefs_partition";
+			storage_partition: partition@100000 {
+				label = "storage";
 				reg = <0x00100000 0x01F00000>; /* 31MB */
 			};
 		};
@@ -269,8 +269,8 @@
 		 * Storage partition will be used by FCB/LittleFS/NVS
 		 * if enabled.
 		 */
-		storage_partition: partition@f8000 {
-			label = "storage";
+		internal_storage_partition: partition@f8000 {
+			label = "internal_storage";
 			reg = <0x000f8000 0x00008000>;
 		};
 	};
