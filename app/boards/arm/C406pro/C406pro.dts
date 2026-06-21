@@ -61,7 +61,7 @@
 		mcuboot-button0 = &button0;
 		watchdog0 = &wdt0;
 		spi-flash0 = &gd25q256;
-		gnss-uart = &uart1;
+		gnss = &gnss0;
 	};
 };
 
@@ -79,6 +79,13 @@
 
 &gpio0 {
 	status = "okay";
+
+	gnss-reset-hog {
+		gpio-hog;
+		gpios = <6 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "UC6226 reset";
+	};
 };
 
 &gpio1 {
@@ -101,6 +108,12 @@
 	pinctrl-0 = <&uart1_default>;
 	pinctrl-1 = <&uart1_sleep>;
 	pinctrl-names = "default", "sleep";
+
+	gnss0: gnss {
+		compatible = "gnss-nmea-generic";
+		status = "okay";
+		power-domain = <&powerdomain0>;
+	};
 };
 
 &i2c0 {

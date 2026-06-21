@@ -28,8 +28,6 @@ struct lv_objs{
 		lv_obj_t* gnss;
 };
 
-static uint32_t cnt = 0;
-
 static void format_coord(int32_t coord_e6, bool is_latitude, char *buf, size_t buf_size)
 {
 	char hemi;
@@ -71,7 +69,7 @@ static const char *hdop_grade(uint16_t hdop_x10)
 void info_update(lv_timer_t * timer)
 {
 	struct lv_objs* objs = timer->user_data;
-	struct gnss_info gnss;
+	struct gnss_snapshot gnss;
 	int32_t bat_level = battery_get_mv();
 	struct sensor_value pressure;
 	struct sensor_value temperature;
@@ -103,7 +101,7 @@ void info_update(lv_timer_t * timer)
 			 "Lat:%s\nLon:%s\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%u km/h\nCog:%u.%u deg",
 			 lat_buf, lon_buf,
 			 gnss.hdop_x10 / 10U, gnss.hdop_x10 % 10U, hdop_text,
- 			gnss.quality,
+			 gnss.quality,
 			 gnss.satellites,
 			 gnss.speed_kmh_x10 / 10U, gnss.speed_kmh_x10 % 10U,
 			 gnss.course_deg_x10 / 10U, gnss.course_deg_x10 % 10U);
@@ -111,7 +109,7 @@ void info_update(lv_timer_t * timer)
 		snprintf(gnss_buf, sizeof(gnss_buf),
 			 "Lat:--\nLon:--\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%u km/h\nCog:%u.%u deg",
 			 gnss.hdop_x10 / 10U, gnss.hdop_x10 % 10U, hdop_text,
-			gnss.quality, 
+			 gnss.quality,
 			 gnss.satellites,
 			 gnss.speed_kmh_x10 / 10U, gnss.speed_kmh_x10 % 10U,
 			 gnss.course_deg_x10 / 10U, gnss.course_deg_x10 % 10U);

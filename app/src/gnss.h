@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct gnss_info {
+struct gnss_snapshot {
 	bool has_fix;
 	int32_t lat_e6;
 	int32_t lon_e6;
@@ -16,6 +16,6 @@ struct gnss_info {
 };
 
 void gnss_init(void);
-void gnss_get_info(struct gnss_info *info);
+void gnss_get_info(struct gnss_snapshot *info);
 
-#endif // GNSS_H
+#endif /* GNSS_H */
