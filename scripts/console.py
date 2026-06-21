@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import contextlib
 import os
+import signal
 import sys
 
 from bleak import BleakClient, BleakScanner
@@ -27,10 +28,11 @@ def stdin_cbreak():
     fd = sys.stdin.fileno()
     old_attrs = termios.tcgetattr(fd)
     new_attrs = old_attrs[:]
+    new_attrs[6] = old_attrs[6][:]
     new_attrs[3] &= ~(termios.ICANON | termios.ECHO)
     new_attrs[6][termios.VMIN] = 1
     new_attrs[6][termios.VTIME] = 0
-    # Disable VINTR (Ctrl+C) signal generation so we can handle it ourselves
+    # Forward Ctrl+C to the remote shell instead of interrupting this process.
     new_attrs[6][termios.VINTR] = 0
 
     try:
@@ -38,6 +40,22 @@ def stdin_cbreak():
         yield
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_attrs)
+
+
+@contextlib.contextmanager
+def graceful_exit_signals():
+    previous = {}
+
+    def stop(_signum, _frame):
+        raise KeyboardInterrupt
+
+    for signum in (signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT):
+        previous[signum] = signal.signal(signum, stop)
+    try:
+        yield
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
 
 
 async def find_device(name: str, timeout: float):
@@ -59,17 +77,37 @@ async def find_device(name: str, timeout: float):
 async def stdin_bytes(queue: asyncio.Queue):
     loop = asyncio.get_running_loop()
     fd = sys.stdin.fileno()
+    done = loop.create_future()
 
-    while True:
-        data = await loop.run_in_executor(None, os.read, fd, 16)
+    def finish():
+        if not done.done():
+            queue.put_nowait(None)
+            done.set_result(None)
+
+    def on_stdin():
+        if done.done():
+            return
+        try:
+            data = os.read(fd, 16)
+        except OSError:
+            finish()
+            return
         if data == b"":
-            await queue.put(None)
+            finish()
             return
-        # Exit on Ctrl+D (0x04), send everything else to device
         if b"\x04" in data:
-            await queue.put(None)
+            data = data.split(b"\x04", 1)[0]
+            if data:
+                queue.put_nowait(data)
+            finish()
             return
-        await queue.put(data)
+        queue.put_nowait(data)
+
+    loop.add_reader(fd, on_stdin)
+    try:
+        await done
+    finally:
+        loop.remove_reader(fd)
 
 
 async def run(args):
@@ -139,7 +177,7 @@ def parse_args():
 
 def main():
     try:
-        with stdin_cbreak():
+        with graceful_exit_signals(), stdin_cbreak():
             asyncio.run(run(parse_args()))
     except KeyboardInterrupt:
         pass

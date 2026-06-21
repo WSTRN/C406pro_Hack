@@ -6,6 +6,7 @@
 #include <zephyr/fs/fs.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/atomic.h>
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/sys/util.h>
 
@@ -33,6 +34,7 @@ enum transfer_cmd {
 	CMD_UPLOAD_END = 3,
 	CMD_DOWNLOAD = 4,
 	CMD_DELETE = 5,
+	CMD_CANCEL = 6,
 };
 
 enum transfer_rsp {
@@ -44,6 +46,7 @@ enum transfer_rsp {
 	RSP_DOWNLOAD_DONE = 0x86,
 	RSP_DELETE_DONE = 0x87,
 	RSP_UPLOAD_CHUNK = 0x88,
+	RSP_CANCEL_DONE = 0x89,
 };
 
 enum transfer_event_type {
@@ -62,8 +65,10 @@ static struct fs_file_t upload_file;
 static bool upload_active;
 static uint32_t upload_size;
 static uint32_t upload_offset;
+static char upload_path[sizeof(TRANSFER_ROOT) + 1 + TRANSFER_NAME_MAX + 1];
 static bool ctrl_notify;
 static bool data_notify;
+static atomic_t cancel_requested;
 K_MSGQ_DEFINE(event_queue, sizeof(struct transfer_event), 4, 4);
 
 static void ctrl_ccc_changed(const struct bt_gatt_attr *attr, uint16_t value)
@@ -185,7 +190,6 @@ static void list_files(void)
 
 static void upload_begin(const uint8_t *buf, uint16_t len)
 {
-	char path[sizeof(TRANSFER_ROOT) + 1 + TRANSFER_NAME_MAX + 1];
 	int err;
 
 	if (len < 6) {
@@ -193,10 +197,11 @@ static void upload_begin(const uint8_t *buf, uint16_t len)
 	} else if (upload_active) {
 		err = -EBUSY;
 	} else {
-		err = make_path(&buf[5], len - 5, path, sizeof(path));
+		err = make_path(&buf[5], len - 5, upload_path, sizeof(upload_path));
 		if (!err) {
 			fs_file_t_init(&upload_file);
-			err = fs_open(&upload_file, path, FS_O_CREATE | FS_O_WRITE | FS_O_TRUNC);
+			err = fs_open(&upload_file, upload_path,
+				      FS_O_CREATE | FS_O_WRITE | FS_O_TRUNC);
 			if (!err) {
 				upload_active = true;
 				upload_size = sys_get_le32(&buf[1]);
@@ -241,6 +246,7 @@ static void upload_end(void)
 		}
 		(void)fs_close(&upload_file);
 		upload_active = false;
+		upload_path[0] = '\0';
 	}
 	sys_put_le32(upload_offset, payload);
 	(void)send_ctrl_retry(RSP_UPLOAD_DONE, err, payload, sizeof(payload));
@@ -262,6 +268,9 @@ static int send_data_retry(const uint8_t *data, uint16_t len)
 	int err;
 
 	for (;;) {
+		if (atomic_get(&cancel_requested)) {
+			return -ECANCELED;
+		}
 		if (!data_notify) {
 			return -EACCES;
 		}
@@ -271,6 +280,20 @@ static int send_data_retry(const uint8_t *data, uint16_t len)
 		}
 		k_msleep(2);
 	}
+}
+
+static void cancel_transfer(void)
+{
+	if (upload_active) {
+		(void)fs_close(&upload_file);
+		upload_active = false;
+		if (upload_path[0]) {
+			(void)fs_unlink(upload_path);
+			upload_path[0] = '\0';
+		}
+	}
+	atomic_clear(&cancel_requested);
+	(void)send_ctrl_retry(RSP_CANCEL_DONE, 0, NULL, 0);
 }
 
 static void download_file(const uint8_t *cmd, uint16_t cmd_len)
@@ -299,6 +322,10 @@ static void download_file(const uint8_t *cmd, uint16_t cmd_len)
 	}
 
 	while (!err) {
+		if (atomic_get(&cancel_requested)) {
+			err = -ECANCELED;
+			break;
+		}
 		bytes_read = fs_read(&file, buf, sizeof(buf));
 		if (bytes_read <= 0) {
 			err = bytes_read < 0 ? (int)bytes_read : 0;
@@ -345,11 +372,19 @@ static ssize_t ctrl_write(struct bt_conn *conn, const struct bt_gatt_attr *attr,
 	if (offset || !len) {
 		return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
 	}
-	if (cmd[0] < CMD_LIST || cmd[0] > CMD_DELETE) {
+	if (cmd[0] < CMD_LIST || cmd[0] > CMD_CANCEL) {
 		return BT_GATT_ERR(BT_ATT_ERR_NOT_SUPPORTED);
 	}
-	return queue_event(EVENT_CONTROL, buf, len) ?
-		BT_GATT_ERR(BT_ATT_ERR_INSUFFICIENT_RESOURCES) : len;
+	if (cmd[0] == CMD_CANCEL) {
+		atomic_set(&cancel_requested, 1);
+	}
+	if (queue_event(EVENT_CONTROL, buf, len)) {
+		if (cmd[0] == CMD_CANCEL) {
+			atomic_clear(&cancel_requested);
+		}
+		return BT_GATT_ERR(BT_ATT_ERR_INSUFFICIENT_RESOURCES);
+	}
+	return len;
 }
 
 static ssize_t data_write(struct bt_conn *conn, const struct bt_gatt_attr *attr,
@@ -375,7 +410,9 @@ static void transfer_worker(void)
 			if (upload_active) {
 				(void)fs_close(&upload_file);
 				upload_active = false;
+				upload_path[0] = '\0';
 			}
+			atomic_clear(&cancel_requested);
 			continue;
 		}
 		if (event.type == EVENT_DATA) {
@@ -397,6 +434,9 @@ static void transfer_worker(void)
 			break;
 		case CMD_DELETE:
 			delete_file(event.data, event.len);
+			break;
+		case CMD_CANCEL:
+			cancel_transfer();
 			break;
 		}
 	}

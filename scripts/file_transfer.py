@@ -6,6 +6,7 @@ Install the only dependency with: python3 -m pip install bleak
 
 import argparse
 import asyncio
+import signal
 import shlex
 import struct
 from pathlib import Path
@@ -24,6 +25,7 @@ CMD_UPLOAD_BEGIN = 2
 CMD_UPLOAD_END = 3
 CMD_DOWNLOAD = 4
 CMD_DELETE = 5
+CMD_CANCEL = 6
 
 RSP_LIST_ITEM = 0x81
 RSP_LIST_DONE = 0x82
@@ -33,6 +35,7 @@ RSP_DOWNLOAD_INFO = 0x85
 RSP_DOWNLOAD_DONE = 0x86
 RSP_DELETE_DONE = 0x87
 RSP_UPLOAD_CHUNK = 0x88
+RSP_CANCEL_DONE = 0x89
 
 
 class FileClient:
@@ -128,6 +131,13 @@ class FileClient:
         await self._wait(RSP_DELETE_DONE)
         print(f"deleted {remote_name}")
 
+    async def cancel(self):
+        await self.client.write_gatt_char(
+            CONTROL_UUID, bytes([CMD_CANCEL]), response=True
+        )
+        await self._wait(RSP_CANCEL_DONE)
+        self.download_data.clear()
+
 class InteractiveShell:
     def __init__(self, files: FileClient):
         self.files = files
@@ -141,7 +151,11 @@ class InteractiveShell:
         print(f"Connected to {DEVICE_NAME}. Type 'help' for commands.")
         while self.files.client.is_connected:
             try:
-                line = await asyncio.to_thread(input, f"{DEVICE_NAME}:/lfs> ")
+                try:
+                    line = input(f"{DEVICE_NAME}:/lfs> ")
+                except KeyboardInterrupt:
+                    print()
+                    continue
                 args = shlex.split(line)
                 if not args:
                     continue
@@ -181,7 +195,17 @@ class InteractiveShell:
                 else:
                     print(f"unknown command: {command}")
             except EOFError:
+                print()
                 return
+            except KeyboardInterrupt:
+                print("\nCancelling transfer...")
+                try:
+                    await self.files.cancel()
+                except (BleakError, RuntimeError) as error:
+                    print(f"cancel failed: {error}")
+                    return
+                print("Transfer cancelled")
+                continue
             except (BleakError, OSError, RuntimeError, ValueError) as error:
                 print(f"error: {error}")
 
@@ -250,5 +274,18 @@ def parse_args():
     return parser.parse_args()
 
 
+def run_main():
+    def interrupt(_signum, _frame):
+        raise KeyboardInterrupt
+
+    previous = signal.signal(signal.SIGINT, interrupt)
+    try:
+        asyncio.run(main(parse_args()))
+    except KeyboardInterrupt:
+        print()
+    finally:
+        signal.signal(signal.SIGINT, previous)
+
+
 if __name__ == "__main__":
-    asyncio.run(main(parse_args()))
+    run_main()
