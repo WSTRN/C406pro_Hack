@@ -23,4 +23,5 @@ target_sources(app PRIVATE
     src/cmd/test_flash.c
     src/button.cpp
     src/button_event.cpp
+	src/gnss.c
 )

@@ -15,6 +15,7 @@
 #include "battery.h"
 #include "button.h"
 #include "ble/ble.h"
+#include "gnss.h"
 
 #include <inttypes.h>
 #include <stddef.h>
@@ -48,6 +49,8 @@ int main()
 	ButtonEvent_Init();
 	main_page();
 	ble_start();
+	k_msleep(200);
+	gnss_init();
 	
 
 	while (1) {
