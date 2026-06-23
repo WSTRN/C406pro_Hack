@@ -11,13 +11,16 @@ project(C406pro_Hack)
 
 target_include_directories(app PRIVATE
     src
+    src/pages
 )
 target_sources(app PRIVATE
     src/main.c
     src/ble/ble.c
     src/ble/transfer_ble.c
     src/ble/shell_ble.c
-    src/main_page.c
+    src/pages/pages.cpp
+    src/pages/info_page.cpp
+    src/pages/PageManager.cpp
     src/battery.c
     src/cmd/test_fs.c
     src/cmd/test_flash.c

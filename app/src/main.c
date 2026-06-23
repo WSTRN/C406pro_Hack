@@ -11,7 +11,7 @@
 #include <lvgl.h>
 #include <zephyr/drivers/sensor.h>
 
-#include "main_page.h"
+#include "pages.h"
 #include "battery.h"
 #include "button.h"
 #include "ble/ble.h"
@@ -47,7 +47,7 @@ int main()
 
 	battery_sensor_init();
 	ButtonEvent_Init();
-	main_page();
+	page_init();
 	ble_start();
 	k_msleep(200);
 	gnss_init();

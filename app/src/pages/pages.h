@@ -1,13 +1,10 @@
 #pragma once
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int battery_sensor_init();
-int32_t battery_get_mv();
+void page_init();
 
 #ifdef __cplusplus
 }
