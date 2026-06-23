@@ -2,20 +2,14 @@
 #define GNSS_H
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <stddef.h>
 
-struct gnss_snapshot {
-	bool has_fix;
-	int32_t lat_e6;
-	int32_t lon_e6;
-	uint8_t quality;
-	uint8_t satellites;
-	uint16_t hdop_x10;
-	uint16_t speed_kmh_x10;
-	uint16_t course_deg_x10;
-};
+#include <zephyr/drivers/gnss.h>
+
+#define GNSS_SATELLITE_CACHE_SIZE 48U
 
 void gnss_init(void);
-void gnss_get_info(struct gnss_snapshot *info);
+bool gnss_get_info(struct gnss_data *data);
+size_t gnss_get_satellites(struct gnss_satellite *satellites, size_t capacity);
 
 #endif /* GNSS_H */

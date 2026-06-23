@@ -28,27 +28,6 @@ struct lv_objs{
 		lv_obj_t* gnss;
 };
 
-static void format_coord(int32_t coord_e6, bool is_latitude, char *buf, size_t buf_size)
-{
-	char hemi;
-	int32_t abs_coord;
-	int32_t degrees;
-	int32_t fraction;
-
-	hemi = is_latitude ? 'N' : 'E';
-	abs_coord = coord_e6;
-
-	if (coord_e6 < 0) {
-		hemi = is_latitude ? 'S' : 'W';
-		abs_coord = -coord_e6;
-	}
-
-	degrees = abs_coord / 1000000;
-	fraction = abs_coord % 1000000;
-	snprintf(buf, buf_size, "%ld.%06ld%c",
-		 (long)degrees, (long)fraction, hemi);
-}
-
 static const char *hdop_grade(uint16_t hdop_x10)
 {
 	if (hdop_x10 == 0U) {
@@ -69,7 +48,8 @@ static const char *hdop_grade(uint16_t hdop_x10)
 void info_update(lv_timer_t * timer)
 {
 	struct lv_objs* objs = timer->user_data;
-	struct gnss_snapshot gnss;
+	struct gnss_data gnss;
+	bool has_fix;
 	int32_t bat_level = battery_get_mv();
 	struct sensor_value pressure;
 	struct sensor_value temperature;
@@ -78,10 +58,13 @@ void info_update(lv_timer_t * timer)
 	uint8_t prs_buf[20];
 	uint8_t tmp_buf[18];
 	uint8_t alt_buf[20];
-	char lat_buf[20];
-	char lon_buf[20];
 	const char *hdop_text;
-	char gnss_buf[128];
+	char gnss_buf[160];
+	uint16_t hdop_x10 = 0U;
+	uint16_t speed_kmh_x10 = 0U;
+	uint16_t course_deg_x10 = 0U;
+	uint64_t latitude = 0ULL;
+	uint64_t longitude = 0ULL;
 	sprintf(bat_buf, "%4dmv", bat_level);
 	sensor_sample_fetch(pressure_dev);
 	sensor_channel_get(pressure_dev, SENSOR_CHAN_PRESS, &pressure);
@@ -91,28 +74,38 @@ void info_update(lv_timer_t * timer)
 	sprintf(prs_buf, "%6d.%01dPa", pressure.val1, pressure.val2/100000);
 	sprintf(tmp_buf, "%2d.%02dC", temperature.val1, temperature.val2/10000);
 	sprintf(alt_buf, "%4d.%01dm", altitude/10, altitude%10);
-	gnss_get_info(&gnss);
-	hdop_text = hdop_grade(gnss.hdop_x10);
+	has_fix = gnss_get_info(&gnss) &&
+		  gnss.info.fix_status != GNSS_FIX_STATUS_NO_FIX;
+	if (has_fix) {
+		hdop_x10 = (uint16_t)(gnss.info.hdop / 100U);
+		speed_kmh_x10 = (uint16_t)((gnss.nav_data.speed * 36ULL) / 1000ULL);
+		course_deg_x10 = (uint16_t)(gnss.nav_data.bearing / 100U);
+		latitude = gnss.nav_data.latitude < 0 ? -gnss.nav_data.latitude :
+			   gnss.nav_data.latitude;
+		longitude = gnss.nav_data.longitude < 0 ? -gnss.nav_data.longitude :
+			    gnss.nav_data.longitude;
+	}
+	hdop_text = hdop_grade(hdop_x10);
 
-	if (gnss.has_fix) {
-		format_coord(gnss.lat_e6, true, lat_buf, sizeof(lat_buf));
-		format_coord(gnss.lon_e6, false, lon_buf, sizeof(lon_buf));
+	if (has_fix) {
 		snprintf(gnss_buf, sizeof(gnss_buf),
-			 "Lat:%s\nLon:%s\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%u km/h\nCog:%u.%u deg",
-			 lat_buf, lon_buf,
-			 gnss.hdop_x10 / 10U, gnss.hdop_x10 % 10U, hdop_text,
-			 gnss.quality,
-			 gnss.satellites,
-			 gnss.speed_kmh_x10 / 10U, gnss.speed_kmh_x10 % 10U,
-			 gnss.course_deg_x10 / 10U, gnss.course_deg_x10 % 10U);
+			 "Lat:%llu.%06llu%s\nLon:%llu.%06llu%s\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%u km/h\nCog:%u.%u deg",
+			 latitude / 1000000000ULL,
+			 (latitude % 1000000000ULL) / 1000ULL,
+			 gnss.nav_data.latitude < 0 ? "S" : "N",
+			 longitude / 1000000000ULL,
+			 (longitude % 1000000000ULL) / 1000ULL,
+			 gnss.nav_data.longitude < 0 ? "W" : "E",
+			 hdop_x10 / 10U, hdop_x10 % 10U, hdop_text,
+			 gnss.info.fix_quality,
+			 gnss.info.satellites_cnt,
+			 speed_kmh_x10 / 10U, speed_kmh_x10 % 10U,
+			 course_deg_x10 / 10U, course_deg_x10 % 10U);
 	} else {
 		snprintf(gnss_buf, sizeof(gnss_buf),
 			 "Lat:--\nLon:--\nHDOP:%u.%u %s\nQ:%u\nSat:%u\nSpd:%u.%u km/h\nCog:%u.%u deg",
-			 gnss.hdop_x10 / 10U, gnss.hdop_x10 % 10U, hdop_text,
-			 gnss.quality,
-			 gnss.satellites,
-			 gnss.speed_kmh_x10 / 10U, gnss.speed_kmh_x10 % 10U,
-			 gnss.course_deg_x10 / 10U, gnss.course_deg_x10 % 10U);
+			 hdop_x10 / 10U, hdop_x10 % 10U, hdop_text,
+			 0U, 0U, 0U, 0U, 0U, 0U);
 	}
 
 	k_mutex_lock(&lvgl_mutex, K_FOREVER);
@@ -149,7 +142,7 @@ void lvgl_entry_point(void *, void *, void *)
 	lv_label_set_text(alt_label, "Altitude:");
 	lv_obj_align(alt_label, LV_ALIGN_TOP_LEFT, 0, 68);
 	gnss_label = lv_label_create(lv_scr_act());
-	lv_label_set_text(gnss_label, "GNSS:");
+	lv_label_set_text(gnss_label, "GNSS(WGS84):");
 	lv_obj_align(gnss_label, LV_ALIGN_TOP_LEFT, 0, 84);
 
 	main_page_objs.bat = lv_label_create(lv_scr_act());

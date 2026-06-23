@@ -21,6 +21,7 @@ target_sources(app PRIVATE
     src/battery.c
     src/cmd/test_fs.c
     src/cmd/test_flash.c
+    src/cmd/gnss.c
     src/button.cpp
     src/button_event.cpp
 	src/gnss.c
