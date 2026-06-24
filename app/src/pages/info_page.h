@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include <lvgl.h>
+
 #include "PageManager.h"
 
-void info_page_register(PageManager *manager, uint8_t page_id);
+void PageRegister_Info(uint8_t pageID);

@@ -47,7 +47,7 @@ int main()
 
 	battery_sensor_init();
 	ButtonEvent_Init();
-	page_init();
+	ui_init();
 	ble_start();
 	k_msleep(200);
 	gnss_init();

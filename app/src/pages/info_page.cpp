@@ -9,8 +9,12 @@
 #include "battery.h"
 #include "gnss.h"
 #include "info_page.h"
+#include "pages.h"
 
 extern const struct device *pressure_dev;
+
+static lv_obj_t *info_window;
+static uint8_t ThisPage;
 
 struct info_page_widgets {
 	lv_obj_t *bat;
@@ -124,49 +128,44 @@ static void setup_info_page(int arg)
 
 	ARG_UNUSED(arg);
 
-	bat_label = lv_label_create(lv_scr_act());
-	lv_label_set_text(bat_label, "Bat:");
-	lv_obj_align(bat_label, LV_ALIGN_TOP_LEFT, 0, 16);
-	prs_label = lv_label_create(lv_scr_act());
-	lv_label_set_text(prs_label, "Prs:");
-	lv_obj_align(prs_label, LV_ALIGN_TOP_LEFT, 0, 26);
-	tmp_label = lv_label_create(lv_scr_act());
-	lv_label_set_text(tmp_label, "Temp:");
-	lv_obj_align(tmp_label, LV_ALIGN_TOP_LEFT, 0, 36);
-	alt_label = lv_label_create(lv_scr_act());
-	lv_label_set_text(alt_label, "Altitude:");
-	lv_obj_align(alt_label, LV_ALIGN_TOP_LEFT, 0, 46);
-	gnss_label = lv_label_create(lv_scr_act());
-	lv_label_set_text(gnss_label, "GNSS(WGS84):");
-	lv_obj_align(gnss_label, LV_ALIGN_TOP_LEFT, 0, 60);
+	// lv_obj_set_pos(info_window, 0, 0);
+	lv_obj_move_foreground(info_window);
+	lv_obj_clear_flag(info_window, LV_OBJ_FLAG_HIDDEN);
 
-	info_widgets.bat = lv_label_create(lv_scr_act());
+	bat_label = lv_label_create(info_window);
+	lv_label_set_text(bat_label, "Bat:");
+	lv_obj_align(bat_label, LV_ALIGN_TOP_LEFT, 0, 0);
+	prs_label = lv_label_create(info_window);
+	lv_label_set_text(prs_label, "Prs:");
+	lv_obj_align(prs_label, LV_ALIGN_TOP_LEFT, 0, 10);
+	tmp_label = lv_label_create(info_window);
+	lv_label_set_text(tmp_label, "Temp:");
+	lv_obj_align(tmp_label, LV_ALIGN_TOP_LEFT, 0, 20);
+	alt_label = lv_label_create(info_window);
+	lv_label_set_text(alt_label, "Altitude:");
+	lv_obj_align(alt_label, LV_ALIGN_TOP_LEFT, 0, 30);
+	gnss_label = lv_label_create(info_window);
+	lv_label_set_text(gnss_label, "GNSS(WGS84):");
+	lv_obj_align(gnss_label, LV_ALIGN_TOP_LEFT, 0, 44);
+
+	info_widgets.bat = lv_label_create(info_window);
 	lv_label_set_text(info_widgets.bat, "0000mv");
-	lv_obj_align(info_widgets.bat, LV_ALIGN_TOP_LEFT, 32, 16);
-	info_widgets.prs = lv_label_create(lv_scr_act());
+	lv_obj_align(info_widgets.bat, LV_ALIGN_TOP_LEFT, 32, 0);
+	info_widgets.prs = lv_label_create(info_window);
 	lv_label_set_text(info_widgets.prs, "000000Pa");
-	lv_obj_align(info_widgets.prs, LV_ALIGN_TOP_LEFT, 32, 26);
-	info_widgets.tmp = lv_label_create(lv_scr_act());
+	lv_obj_align(info_widgets.prs, LV_ALIGN_TOP_LEFT, 32, 10);
+	info_widgets.tmp = lv_label_create(info_window);
 	lv_label_set_text(info_widgets.tmp, "00C");
-	lv_obj_align(info_widgets.tmp, LV_ALIGN_TOP_LEFT, 40, 36);
-	info_widgets.alt = lv_label_create(lv_scr_act());
+	lv_obj_align(info_widgets.tmp, LV_ALIGN_TOP_LEFT, 40, 20);
+	info_widgets.alt = lv_label_create(info_window);
 	lv_label_set_text(info_widgets.alt, "0000m");
-	lv_obj_align(info_widgets.alt, LV_ALIGN_TOP_LEFT, 72, 46);
-	info_widgets.gnss = lv_label_create(lv_scr_act());
+	lv_obj_align(info_widgets.alt, LV_ALIGN_TOP_LEFT, 72, 30);
+	info_widgets.gnss = lv_label_create(info_window);
 	lv_label_set_long_mode(info_widgets.gnss, LV_LABEL_LONG_WRAP);
 	lv_obj_set_width(info_widgets.gnss, 128);
 	lv_label_set_text(info_widgets.gnss,
 			  "Lat:--\nLon:--\nHDOP:0.0 --\nQ:0\nSat:0\nSpd:0.0 km/h\nCog:0.0 deg");
-	lv_obj_align(info_widgets.gnss, LV_ALIGN_TOP_LEFT, 0, 70);
-
-#define INFO_CANVAS_WIDTH  128
-#define INFO_CANVAS_HEIGHT  16
-	static lv_color_t cbuf[LV_CANVAS_BUF_SIZE_TRUE_COLOR(INFO_CANVAS_WIDTH, INFO_CANVAS_HEIGHT)];
-	lv_obj_t *canvas = lv_canvas_create(lv_scr_act());
-	lv_canvas_set_buffer(canvas, cbuf, INFO_CANVAS_WIDTH, INFO_CANVAS_HEIGHT,
-			     LV_IMG_CF_TRUE_COLOR);
-	lv_obj_align(canvas, LV_ALIGN_TOP_MID, 0, 0);
-	lv_canvas_fill_bg(canvas, lv_color_black(), LV_OPA_COVER);
+	lv_obj_align(info_widgets.gnss, LV_ALIGN_TOP_LEFT, 0, 56);
 
 	refresh_timer = lv_timer_create(refresh_info, 500, &info_widgets);
 	lv_timer_set_repeat_count(refresh_timer, -1);
@@ -187,11 +186,14 @@ static void teardown_info_page(int arg)
 		refresh_timer = NULL;
 	}
 
-	lv_obj_clean(lv_scr_act());
+	lv_obj_clean(info_window);
+	lv_obj_add_flag(info_window, LV_OBJ_FLAG_HIDDEN);
 }
 
-void info_page_register(PageManager *manager, uint8_t page_id)
+void PageRegister_Info(uint8_t pageID)
 {
-	manager->PageRegister(page_id, setup_info_page, loop_info_page,
-			      teardown_info_page, NULL);
+	info_window = AppWindow_GetCont(pageID);
+	ThisPage = pageID;
+	page.PageRegister(pageID, setup_info_page, loop_info_page,
+			  teardown_info_page, NULL);
 }
