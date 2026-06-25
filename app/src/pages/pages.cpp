@@ -4,6 +4,7 @@
 #include <zephyr/kernel.h>
 
 #include "info_page.h"
+#include "main_page.h"
 #include "pages.h"
 #define PAGES_THREAD_STACK_SIZE 2048
 #define PAGES_THREAD_PRIORITY 5
@@ -63,8 +64,9 @@ void AppWindow_Create()
 
 void Pages_Init()
 {
+	PAGE_REG(Main);
 	PAGE_REG(Info);
-	page.PagePush(PAGE_Info);
+	page.PagePush(PAGE_Main);
 }
 
 static void StatusBar_Init()

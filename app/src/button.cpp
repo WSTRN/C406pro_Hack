@@ -9,6 +9,7 @@
 #include <zephyr/sys/poweroff.h>
 
 #include "ble/ble.h"
+#include "pages.h"
 
 LOG_MODULE_REGISTER(button, LOG_LEVEL_INF);
 
@@ -63,7 +64,10 @@ static void btn0_EventHandler(ButtonEvent* btn, int event)
 static void btn1_EventHandler(ButtonEvent* btn, int event)
 {
     if(event == ButtonEvent::EVENT_ButtonClick)
+    {
         LOG_INF("btn1 press");
+        page.PageChangeTo(page.NowPage+1 == PAGE_MAX ? PAGE_NONE+1 : page.NowPage+1);
+    }
 }
 static void btn2_EventHandler(ButtonEvent* btn, int event)
 {

@@ -19,6 +19,7 @@ target_sources(app PRIVATE
     src/ble/transfer_ble.c
     src/ble/shell_ble.c
     src/pages/pages.cpp
+    src/pages/main_page.cpp
     src/pages/info_page.cpp
     src/pages/PageManager.cpp
     src/battery.c

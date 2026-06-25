@@ -8,6 +8,7 @@
 
 typedef enum {
 	PAGE_NONE,
+	PAGE_Main,
 	PAGE_Info,
 	PAGE_MAX,
 } Page_Type;
