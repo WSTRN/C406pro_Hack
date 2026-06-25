@@ -6,10 +6,9 @@
 #include "info_page.h"
 #include "main_page.h"
 #include "pages.h"
+#include "status_bar.h"
 #define PAGES_THREAD_STACK_SIZE 2048
 #define PAGES_THREAD_PRIORITY 5
-#define STATUS_BAR_WIDTH 128
-#define STATUS_BAR_HEIGHT 16
 #define PAGE_WIDTH 128
 #define PAGE_HEIGHT 144
 
@@ -19,9 +18,6 @@ static k_tid_t pages_thread_id;
 static struct k_mutex pages_mutex;
 PageManager page(PAGE_MAX);
 static lv_obj_t *page_windows[PAGE_MAX];
-static lv_color_t status_bar_buffer[LV_CANVAS_BUF_SIZE_TRUE_COLOR(STATUS_BAR_WIDTH,
-								  STATUS_BAR_HEIGHT)];
-static lv_obj_t *status_bar;
 
 extern const struct device *display_dev;
 
@@ -69,15 +65,6 @@ void Pages_Init()
 	page.PagePush(PAGE_Main);
 }
 
-static void StatusBar_Init()
-{
-	status_bar = lv_canvas_create(lv_layer_top());
-	lv_canvas_set_buffer(status_bar, status_bar_buffer, STATUS_BAR_WIDTH,
-			     STATUS_BAR_HEIGHT, LV_IMG_CF_TRUE_COLOR);
-	lv_obj_align(status_bar, LV_ALIGN_TOP_MID, 0, 0);
-	lv_canvas_fill_bg(status_bar, lv_color_black(), LV_OPA_COVER);
-}
-
 static void pages_thread_entry(void *, void *, void *)
 {
 	k_mutex_lock(&pages_mutex, K_FOREVER);
@@ -89,6 +76,13 @@ static void pages_thread_entry(void *, void *, void *)
 	for (;;) {
 		k_mutex_lock(&pages_mutex, K_FOREVER);
 		page.Running();
+		static uint32_t last_status_update;
+		uint32_t now = k_uptime_get_32();
+
+		if (now - last_status_update >= 500U) {
+			StatusBar_Refresh();
+			last_status_update = now;
+		}
 		lv_task_handler();
 		k_mutex_unlock(&pages_mutex);
 		k_msleep(20);

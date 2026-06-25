@@ -22,6 +22,7 @@ target_sources(app PRIVATE
     src/pages/main_page.cpp
     src/pages/info_page.cpp
     src/pages/PageManager.cpp
+    src/status_bar.cpp
     src/battery.c
     src/cmd/test_fs.c
     src/cmd/test_flash.c
